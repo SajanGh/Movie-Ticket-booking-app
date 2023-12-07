@@ -21,13 +21,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    /* Path alias  */
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    }
+    /* Custom Path alias  */
   },
   "include": [
     "src",
