@@ -1,13 +1,13 @@
 import { ZodType, z } from "zod";
 
-export type FormData ={
+export type FormData = {
   username: string;
   firstName: string;
   lastName: string;
   email: string;
   password: string;
   confirmPassword: string;
-}
+};
 
 export const registerSchema: ZodType<FormData> = z
   .object({

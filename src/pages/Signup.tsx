@@ -25,6 +25,9 @@ import { toast } from "sonner";
 
 export type RegisterInput = TypeOf<typeof registerSchema>;
 const Signup: React.FC = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const toggleShowPassword = () => setShowPassword((prevState) => !prevState);
   const {
     register,
     handleSubmit,
@@ -33,35 +36,21 @@ const Signup: React.FC = () => {
     resolver: zodResolver(registerSchema),
   });
 
-  const navigate = useNavigate();
-
   const registerUser = async (data: RegisterInput) => {
-    console.log("Its working", data);
     try {
       const response = await authApi.post<GenericResponse>("/signup", data);
-      console.log(response);
 
-      toast.success("Signup successfull", {
-        style: {
-          background: "green",
-        },
-      });
+      if (response.data.message) {
+        toast.success("Signup successfull", {});
+      }
       navigate("/home");
     } catch (err) {
-      toast.error("Something went wrong", {
-        style: {
-          background: "red",
-        },
-      });
+      toast.error("Something went wrong", {});
     }
   };
 
   const onSubmitHandler: SubmitHandler<RegisterInput> = (values) => {
     registerUser(values);
-  };
-  const [showPassword, setShowPassword] = useState(false);
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
   };
 
   return (
@@ -69,7 +58,6 @@ const Signup: React.FC = () => {
       <Container maxWidth="xs">
         <Box>
           <form onSubmit={handleSubmit(onSubmitHandler)}>
-            {/* <form onSubmit={onSignUp}> */}
             <Typography variant="h4" component="h1">
               Signup
             </Typography>
@@ -130,7 +118,7 @@ const Signup: React.FC = () => {
                   <InputAdornment
                     sx={{ cursor: "pointer" }}
                     position="end"
-                    onClick={handleClickShowPassword}
+                    onClick={toggleShowPassword}
                   >
                     {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                   </InputAdornment>
@@ -151,7 +139,7 @@ const Signup: React.FC = () => {
                   <InputAdornment
                     sx={{ cursor: "pointer" }}
                     position="end"
-                    onClick={handleClickShowPassword}
+                    onClick={toggleShowPassword}
                   >
                     {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                   </InputAdornment>

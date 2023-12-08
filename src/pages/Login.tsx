@@ -12,50 +12,49 @@ import {
 import { useState } from "react";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-
 import { Link } from "react-router-dom";
-
-import { authApi } from "../api/authApi";
-
 import { useNavigate } from "react-router-dom";
+import { LoginService } from "../services/LoginService";
+import { toast } from "sonner";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const Login = () => {
+const Login: React.FC = () => {
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const handleClickShowPassword = () => {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const navigate = useNavigate();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCredentials((prevState) => ({ ...prevState, [name]: value }));
+  };
+
+  const toggleShowPassword = () => {
     setShowPassword(!showPassword);
   };
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [loggedIn, setLoggedIn] = useState(false);
-
-  const navigate = useNavigate();
-
   const handleLogin = async () => {
     try {
-      const response = await authApi.post("/login", {
-        email: email,
-        password: password,
-      });
+      const response = await LoginService(
+        credentials.email,
+        credentials.password
+      );
+      localStorage.setItem("token", JSON.stringify(response.token));
+      localStorage.setItem("email", JSON.stringify(credentials.email));
 
-      const token = await response.data.data.accessToken;
-
-      localStorage.setItem("token", JSON.stringify(token));
-
-      localStorage.setItem("email", JSON.stringify(email));
+      toast.success("Signup successfull", {});
       navigate("/home");
-    } catch (err) {
-      console.log("Login error:", err);
+    } catch (error) {
+      toast.error("Something went wrong", {});
+      console.log("Login error:", error);
+      throw error;
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("email");
     localStorage.removeItem("token");
-    setEmail("");
     setLoggedIn(false);
   };
 
@@ -67,9 +66,7 @@ const Login = () => {
             <Button onClick={handleLogout}>Logout</Button>
           ) : (
             <div>
-              <Typography variant="h5" component="h1">
-
-              </Typography>
+              <Typography variant="h5" component="h1"></Typography>
 
               <Box>
                 <TextField
@@ -80,7 +77,9 @@ const Login = () => {
                   autoComplete="email"
                   label="Email Address"
                   variant="outlined"
-                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
+                  value={credentials.email}
+                  onChange={handleChange}
                 />
 
                 <TextField
@@ -90,13 +89,15 @@ const Login = () => {
                   label="Password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  onChange={(e) => setPassword(e.target.value)}
+                  name="password"
+                  value={credentials.password}
+                  onChange={handleChange}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment
                         sx={{ cursor: "pointer" }}
                         position="end"
-                        onClick={handleClickShowPassword}
+                        onClick={toggleShowPassword}
                       >
                         {showPassword ? (
                           <VisibilityIcon />

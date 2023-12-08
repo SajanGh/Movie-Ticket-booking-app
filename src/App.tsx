@@ -8,7 +8,7 @@ const App = () => {
     <>
       <div className="p-0 m-0">
         <CssBaseline />
-        <Toaster expand visibleToasts={9} />
+        <Toaster expand visibleToasts={9} richColors />
         <Router />
       </div>
     </>
