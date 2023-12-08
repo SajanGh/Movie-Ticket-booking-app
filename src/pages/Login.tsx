@@ -14,8 +14,9 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { LoginService } from "../services/LoginService";
 import { toast } from "sonner";
+import { loginService } from "../services/loginService";
+import { useAuth } from "../contexts/AuthContext";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -24,6 +25,7 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -36,15 +38,16 @@ const Login: React.FC = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await LoginService(
+      const response = await loginService(
         credentials.email,
         credentials.password
       );
       localStorage.setItem("token", JSON.stringify(response.token));
       localStorage.setItem("email", JSON.stringify(credentials.email));
+      login(response.token);
 
       toast.success("Signup successfull", {});
-      navigate("/home");
+      navigate("/");
     } catch (error) {
       toast.error("Something went wrong", {});
       console.log("Login error:", error);
@@ -67,7 +70,6 @@ const Login: React.FC = () => {
           ) : (
             <div>
               <Typography variant="h5" component="h1"></Typography>
-
               <Box>
                 <TextField
                   required

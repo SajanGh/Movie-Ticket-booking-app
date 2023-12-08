@@ -1,20 +1,15 @@
 import { FC, Suspense } from "react";
 import { Outlet } from "react-router-dom";
 
-import { LinearProgress } from "@mui/material";
+import { CircularProgress } from "@mui/material";
 
 interface RootLayoutProps {}
 
 const RootLayout: FC<RootLayoutProps> = () => {
   return (
     <div>
-      <div className="container flex">
-        Hello
-      </div>
-      <Suspense fallback={<LinearProgress />}>
-        <div>
-          <Outlet />
-        </div>
+      <Suspense fallback={<CircularProgress />}>
+        <Outlet />
       </Suspense>
     </div>
   );
