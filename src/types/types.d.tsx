@@ -32,4 +32,5 @@ export interface Showtime {
   startTime: Date;
   totalSeats: number;
   seatsBooked: number;
+  pricePerSeat: number;
 }
