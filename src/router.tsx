@@ -9,7 +9,6 @@ import HomePage from "./pages/HomePage";
 import MovieDetailPage from "./pages/MovieDetailPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import Showtimes from "./pages/Showtimes";
 
 const router = createBrowserRouter([
   {

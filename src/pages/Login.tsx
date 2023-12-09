@@ -18,8 +18,6 @@ import { toast } from "sonner";
 import { loginService } from "../services/loginService";
 import { useAuth } from "../contexts/AuthContext";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 const Login: React.FC = () => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -42,8 +40,9 @@ const Login: React.FC = () => {
         credentials.email,
         credentials.password
       );
+
       localStorage.setItem("token", JSON.stringify(response.token));
-      localStorage.setItem("email", JSON.stringify(credentials.email));
+
       login(response.token);
 
       toast.success("Signup successfull", {});
@@ -69,7 +68,9 @@ const Login: React.FC = () => {
             <Button onClick={handleLogout}>Logout</Button>
           ) : (
             <div>
-              <Typography variant="h5" component="h1"></Typography>
+              <Typography variant="h5" component="h1">
+                Login
+              </Typography>
               <Box>
                 <TextField
                   required

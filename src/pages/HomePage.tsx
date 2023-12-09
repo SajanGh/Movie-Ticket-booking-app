@@ -1,22 +1,14 @@
-import { Box, CardMedia, Grid, Typography } from "@mui/material";
+import {
+  Box,
+  CardMedia,
+  CircularProgress,
+  Grid,
+  Typography,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { authApi } from "../api/authApi";
 import { useNavigate } from "react-router-dom";
-
-export interface Movie {
-  _id: string;
-  title: string;
-  description: string;
-  genre: [string];
-  duration: number;
-  releaseDate: Date;
-  posterURL: string;
-}
-
-export interface MovieResponse {
-  message: string;
-  Movies: Movie[];
-}
+import { Movie, MovieResponse } from "../types/types.d";
 
 const HomePage: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -38,12 +30,20 @@ const HomePage: React.FC = () => {
     fetchMovies();
   }, []);
 
+  if (!movies) {
+    return (
+      <div>
+        <CircularProgress />
+      </div>
+    );
+  }
+
   const navigateToMovie = (movieId: string) => {
     navigate(`/home/${movieId}`);
   };
 
   return (
-    <div className="mt-10 bg-red-200 flex justify-center items-center w-full">
+    <div className="mt-10  flex justify-center items-center w-full">
       <Grid container spacing={2} className="my-10" justifyContent="center">
         <Grid item xs={10}>
           <Grid container spacing={2} justifyContent="center">

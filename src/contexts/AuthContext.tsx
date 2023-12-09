@@ -1,21 +1,19 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import { User } from "../components/Navbar";
+import { jwtDecode } from "jwt-decode";
 
 interface AuthContextType {
   isAuthenticated: boolean;
   login: (token: string) => void;
-  logout: () => void;
+  user: User | null;
+  setUser: (user: User | null) => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   login: () => {},
-  logout: () => {},
+  user: null,
+  setUser: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -23,30 +21,18 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   const login = (token: string) => {
     localStorage.setItem("token", token);
+    const decodedUser = jwtDecode<User>(token); // Assuming JWT contains user info
+    setUser(decodedUser);
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setIsAuthenticated(false);
-  };
-
-  useEffect(() => {
-    console.log("chekcing");
-
-    const token = localStorage.getItem("token");
-    console.log(token,"Token found in console");
-    if (token) {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, user, setUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -4,6 +4,7 @@ import {
   Checkbox,
   Container,
   FormControlLabel,
+  Grid,
   InputAdornment,
   TextField,
   Typography,
@@ -18,7 +19,7 @@ import { FormData } from "../validation/signup.validation";
 
 import { authApi } from "../api/authApi";
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TypeOf } from "zod";
 import { GenericResponse } from "../types/types.d";
 import { toast } from "sonner";
@@ -164,6 +165,12 @@ const Signup: React.FC = () => {
             </Button>
           </form>
         </Box>
+        <Grid item xs={8}>
+          <Typography variant="body2" className="flex justify-center">
+            Already have an account?
+            <Link to="/login">Login</Link>
+          </Typography>
+        </Grid>
       </Container>
     </div>
   );
