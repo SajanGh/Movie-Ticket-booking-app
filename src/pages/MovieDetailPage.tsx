@@ -73,19 +73,6 @@ const MovieDetailPage = () => {
     setOpenDialog(false);
   };
 
-  useEffect(() => {
-    // Whenever selectedSeats or showtimes change, recalculate the total price
-    const total = Object.entries(selectedSeats).reduce(
-      (acc, [showtimeId, numSeats]) => {
-        const showtime = showtimes.find((st) => st._id === showtimeId);
-        const pricePerSeat = showtime?.pricePerSeat ?? 0;
-        return acc + numSeats * pricePerSeat;
-      },
-      0
-    );
-    setTotalPrice(total);
-  }, [selectedSeats, showtimes]);
-
   const handleConfirmBooking = async () => {
     if (!confirmBookingShowtimeId || !selectedSeats[confirmBookingShowtimeId]) {
       toast.error("Please select a showtime and number of seats");
@@ -218,7 +205,6 @@ const MovieDetailPage = () => {
                       Seats Booked: {showtime.seatsBooked}
                     </Typography>
                     <Typography>Seat Price: {showtime.pricePerSeat}</Typography>
-
 
                     <div className="flex items-center">
                       <IconButton

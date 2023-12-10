@@ -30,11 +30,16 @@ const HomePage: React.FC = () => {
     fetchMovies();
   }, []);
 
-  if (!movies) {
+  if (movies.length === 0) {
     return (
-      <div>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
         <CircularProgress />
-      </div>
+      </Box>
     );
   }
 
