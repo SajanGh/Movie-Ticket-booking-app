@@ -9,7 +9,8 @@ import HomePage from "./pages/HomePage";
 import MovieDetailPage from "./pages/MovieDetailPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import SuccessPage from "./pages/SuccessPage";
+
+import BookingDetailsPage from "./pages/BookingDetailsPage";
 
 const router = createBrowserRouter([
   {
@@ -18,7 +19,8 @@ const router = createBrowserRouter([
     errorElement: <NotFoundPage />,
 
     children: [
-      { path: "success", element: <SuccessPage /> },
+      { path: "bookings/:bookingId", element: <BookingDetailsPage /> },
+      // {path:booking},
       {
         path: "login",
         element: <Login />,

@@ -1,80 +1,56 @@
-import { useEffect, useState } from "react";
-import { Box, CircularProgress, IconButton, Typography } from "@mui/material";
-import ArrowBackIosNewOutlinedIcon from "@mui/icons-material/ArrowBackIosNewOutlined";
-import ArrowForwardIosOutlinedIcon from "@mui/icons-material/ArrowForwardIosOutlined";
-import { Link } from "react-router-dom"; // Assuming you're using react-router for navigation
-import { movieService } from "../services/movieService";
-import { Movie } from "../types/types.d";
+import { Box, Typography, Button } from "@mui/material";
+import { Link } from "react-router-dom";
 
+import theaterImage from "../assets/theater.png";
 const MovieSlider = () => {
-  const [slideIndex, setSlideIndex] = useState(0);
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchMovies = async () => {
-      const fetchedMovies = await movieService.fetchMovies();
-      setMovies(fetchedMovies);
-      setLoading(false);
-    };
-
-    fetchMovies();
-  }, []);
-
-  if (!movies) {
-    return (
-      <div>
-        <CircularProgress />
-      </div>
-    );
-  }
-
-  const handleClick = (direction: string) => {
-    if (direction === "left") {
-      setSlideIndex(slideIndex > 0 ? slideIndex - 1 : movies.length - 1);
-    } else {
-      setSlideIndex(slideIndex < movies.length - 1 ? slideIndex + 1 : 0);
-    }
-  };
-
   return (
-    <Box className="relative flex items-center">
-      <IconButton
-        className="absolute left-0 z-10"
-        onClick={() => handleClick("left")}
-      >
-        <ArrowBackIosNewOutlinedIcon />
-      </IconButton>
-
+    <Box
+      className="relative w-full h-screen "
+      style={{
+        backgroundImage: `url(${theaterImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        overflowY: "hidden",
+      }}
+    >
       <Box
-        className={`flex transition-transform duration-500 ease-in-out`}
-        style={{ transform: `translateX(${-100 * slideIndex}%)` }}
+        className="absolute inset-0 overflow-y:hidden"
+        style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
       >
-        {movies.map((item) => (
-          <Box
-            key={item._id}
-            className="flex-none w-full h-full flex items-center justify-center bg-cover bg-center "
-            style={{ backgroundImage: `url(${item.posterURL})` }}
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          height="100%"
+          p={4}
+        >
+          <Typography
+            variant="h3"
+            component="h1"
+            sx={{
+              fontWeight: "bold",
+              color: "white",
+              mb: 2,
+              textAlign: "center",
+            }}
           >
-            <Box className="p-10 bg-gray-700 bg-opacity-50">
-              <Typography variant="h5">{item.title}</Typography>
-              <Typography variant="body1">{item.description}</Typography>
-              <Link to="/home">
-                <button className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                  See More Movies
-                </button>
-              </Link>
-            </Box>
-          </Box>
-        ))}
+            Movie Tickets Booking
+          </Typography>
+          <Link to="/home" style={{ textDecoration: "none" }}>
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "gold",
+                color: "black",
+                fontWeight: "bold",
+              }}
+            >
+              See Available Movies
+            </Button>
+          </Link>
+        </Box>
       </Box>
-
-      <IconButton
-        className="absolute right-0 z-10"
-        onClick={() => handleClick("right")}
-      >
-        <ArrowForwardIosOutlinedIcon />
-      </IconButton>
     </Box>
   );
 };

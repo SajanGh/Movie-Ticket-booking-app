@@ -1,19 +1,24 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { authApi } from "../api/authApi";
+import { Movie, Showtime } from "../types/types.d";
+import { toast } from "sonner";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   CardMedia,
   CircularProgress,
   IconButton,
   Typography,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
-import { authApi } from "../api/authApi";
-import { Movie, Showtime } from "../types/types.d";
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { toast } from "sonner";
 import { Add, Remove } from "@mui/icons-material";
 
 const MovieDetailPage = () => {
@@ -23,15 +28,11 @@ const MovieDetailPage = () => {
   const userId = user?._id;
   const [movieDetail, setMovieDetail] = useState<Movie>();
   const [showtimes, setShowtimes] = useState<Showtime[]>([]);
-  const [selectedSeats, setSelectedSeasts] = useState<number>(0);
-  const [selectedShowtime, setSelectedShowtime] = useState<string | null>(null);
+  const [selectedSeats, setSelectedSeats] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
   const [totalPrice, setTotalPrice] = useState<number>(0);
-  const incrementSeats = (maxSeats) => {
-    setSelectedSeasts((seats) => (seats < maxSeats ? seats + 1 : seats));
-  };
-  const decrementSeats = () => {
-    setSelectedSeasts((seats) => (seats > 1 ? seats - 1 : seats));
-  };
+  const [confirmBookingShowtimeId, setConfirmBookingShowtimeId] =
+    useState(null);
 
   useEffect(() => {
     const fetchMovieAndShowtimes = async () => {
@@ -42,67 +43,118 @@ const MovieDetailPage = () => {
         const showtimesResponse = await authApi.get(`/showtimes/${movieId}`);
         setShowtimes(showtimesResponse.data.showtimes);
       } catch (error) {
-        console.error("Error fetching data", error);
+        toast.info("Showtime is not available");
       }
     };
 
     fetchMovieAndShowtimes();
   }, [movieId]);
 
-  if (!movieDetail) {
-    return (
-      <div>
-        <CircularProgress />
-      </div>
-    );
-  }
-
-  const handleSeatSelection = (numSeats: number, pricePerSeat: number) => {
-    setSelectedSeasts(numSeats);
-    setTotalPrice(numSeats * pricePerSeat);
+  const incrementSeats = (showtimeId: string, maxSeats: number) => {
+    setSelectedSeats((prevSeats) => ({
+      ...prevSeats,
+      [showtimeId]: Math.min((prevSeats[showtimeId] || 0) + 1, maxSeats),
+    }));
   };
 
-  const handleBooking = async () => {
-    const selectedShowtimeData = showtimes.find(
-      (showtime) => showtime._id === selectedShowtime
-    );
+  const decrementSeats = (showtimeId) => {
+    setSelectedSeats((prevSeats) => ({
+      ...prevSeats,
+      [showtimeId]: Math.max((prevSeats[showtimeId] || 0) - 1, 0),
+    }));
+  };
 
-    if (!selectedShowtime || selectedSeats <= 0) {
-      toast.error("Please select a shwotime and number of seats");
+  const handleClickOpen = (showtimeId: string) => {
+    setConfirmBookingShowtimeId(showtimeId);
+    setOpenDialog(true);
+  };
+
+  const handleClose = () => {
+    setOpenDialog(false);
+  };
+
+  useEffect(() => {
+    // Whenever selectedSeats or showtimes change, recalculate the total price
+    const total = Object.entries(selectedSeats).reduce(
+      (acc, [showtimeId, numSeats]) => {
+        const showtime = showtimes.find((st) => st._id === showtimeId);
+        const pricePerSeat = showtime?.pricePerSeat ?? 0;
+        return acc + numSeats * pricePerSeat;
+      },
+      0
+    );
+    setTotalPrice(total);
+  }, [selectedSeats, showtimes]);
+
+  const handleConfirmBooking = async () => {
+    if (!confirmBookingShowtimeId || !selectedSeats[confirmBookingShowtimeId]) {
+      toast.error("Please select a showtime and number of seats");
       return;
     }
-    const pricePerSeat = selectedShowtimeData.pricePerSeat;
-    const calculatedTotalPrice = selectedSeats * pricePerSeat;
+
+    const numSeats = selectedSeats[confirmBookingShowtimeId];
+    const selectedShowtimeData = showtimes.find(
+      (showtime) => showtime._id === confirmBookingShowtimeId
+    );
+    const pricePerSeat = selectedShowtimeData
+      ? selectedShowtimeData.pricePerSeat
+      : 0;
+    const calculatedTotalPrice = numSeats * pricePerSeat;
 
     try {
       const response = await authApi.post("/bookings", {
         userId,
-        showtimeId: selectedShowtime,
-        numSeats: selectedSeats,
+        showtimeId: confirmBookingShowtimeId,
+        numSeats,
         totalPrice: calculatedTotalPrice,
       });
-      if (response.status === 201) {
-        toast.success("Booking successfull");
-      }
-      navigate("/success");
+      toast.success("Booking successful");
+      const bookingId = response.data.booking._id;
+      navigate(`/bookings/${bookingId}`);
     } catch (error) {
-      console.error("Error creating booking ", error);
+      console.error("Error creating booking", error);
       toast.error("Booking Error");
+    } finally {
+      handleClose();
     }
   };
 
+  if (!movieDetail) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+  if (!showtimes) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <div className="flex justify-center items-center min-h-screen w-full pt-4">
-      <Card className="w-3/4 max-w-6xl shadow-lg border border-gray-200 hover:shadow-2xl flex relative">
-        <div className="md:w-1/2">
+    <div className="flex flex-col w-full min-h-screen">
+      <Card className="flex flex-col md:flex-row w-full max-w-6xl mx-auto my-4 shadow-lg border border-gray-200 hover:shadow-2xl">
+        <div className="md:w-1/2 flex-shrink-0">
           <CardMedia
             component="img"
             image={movieDetail.posterURL}
             className="object-cover h-full w-full"
           />
         </div>
-
-        <CardContent className="w-1/2 flex flex-col justify-start">
+        <CardContent className="w-1/2 flex flex-col justify-start overflow-auto">
           <div className="text-center p-4">
             <Typography
               gutterBottom
@@ -119,7 +171,7 @@ const MovieDetailPage = () => {
               Genre: {movieDetail.genre.join(", ")}
             </Typography>
             <Typography
-              variant="subtitle8"
+              variant="subtitle1"
               className="text-2xl font-bold text-gray-600 my-2"
             >
               Description: {movieDetail.description}
@@ -142,11 +194,11 @@ const MovieDetailPage = () => {
             <Typography variant="h6" className="mb-3">
               Available Showtimes
             </Typography>
-            <Box className="flex flex-wrap gap-2 justify-start ">
+            <Box className="flex flex-wrap gap-2 justify-start">
               {showtimes.length > 0 ? (
                 showtimes.map((showtime) => (
-                  <Card key={showtime._id} className="p-3 flex-none w-1/3">
-                    <Typography variant="h5">
+                  <Card key={showtime._id} className="p-3 flex-none md:w-1/1">
+                    <Typography variant="body1">
                       {new Date(showtime.startTime).toLocaleDateString(
                         undefined,
                         {
@@ -159,21 +211,19 @@ const MovieDetailPage = () => {
                       )}
                     </Typography>
                     <Typography>
-                      Reamaining Seats:
+                      Remaining Seats:{" "}
                       {showtime.totalSeats - showtime.seatsBooked}{" "}
                     </Typography>
-                    {/* <Typography>
-                      Total Seats: {showtime.totalSeats}
-                    </Typography> */}
                     <Typography>
                       Seats Booked: {showtime.seatsBooked}
                     </Typography>
-                    <Typography>TotalPrice :{showtime.pricePerSeat}</Typography>
+                    <Typography>Seat Price: {showtime.pricePerSeat}</Typography>
+
 
                     <div className="flex items-center">
                       <IconButton
-                        onClick={() => decrementSeats()}
-                        disabled={selectedSeats <= 1}
+                        onClick={() => decrementSeats(showtime._id)}
+                        disabled={selectedSeats[showtime._id] <= 1}
                       >
                         <Remove />
                       </IconButton>
@@ -181,38 +231,38 @@ const MovieDetailPage = () => {
                         type="number"
                         min="1"
                         max={showtime.totalSeats - showtime.seatsBooked}
-                        value={selectedSeats}
+                        value={selectedSeats[showtime._id] || 0}
                         onChange={(e) =>
-                          handleSeatSelection(
-                            parseInt(e.target.value),
-                            showtime.pricePerSeat
-                          )
+                          setSelectedSeats({
+                            ...selectedSeats,
+                            [showtime._id]: Math.min(
+                              parseInt(e.target.value),
+                              showtime.totalSeats - showtime.seatsBooked
+                            ),
+                          })
                         }
                         className="mx-2"
                       />
                       <IconButton
                         onClick={() =>
                           incrementSeats(
+                            showtime._id,
                             showtime.totalSeats - showtime.seatsBooked
                           )
                         }
                         disabled={
-                          selectedSeats >=
+                          selectedSeats[showtime._id] >=
                           showtime.totalSeats - showtime.seatsBooked
                         }
                       >
                         <Add />
                       </IconButton>
                     </div>
-
                     <Button
                       size="large"
                       variant="contained"
                       color="primary"
-                      onClick={() => {
-                        setSelectedShowtime(showtime._id);
-                        handleBooking(showtime._id);
-                      }}
+                      onClick={() => handleClickOpen(showtime._id)}
                     >
                       Confirm Booking
                     </Button>
@@ -223,9 +273,25 @@ const MovieDetailPage = () => {
               )}
             </Box>
           </Box>
-          {/* ! */}
         </CardContent>
       </Card>
+
+      <Dialog open={openDialog} onClose={handleClose}>
+        <DialogTitle>Confirm Booking</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to confirm this booking?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmBooking} color="primary">
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

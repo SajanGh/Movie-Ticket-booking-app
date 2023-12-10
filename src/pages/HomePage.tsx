@@ -33,9 +33,7 @@ const HomePage: React.FC = () => {
   if (!movies) {
     return (
       <div>
-        <Box className="flex justify-center ">
-          <CircularProgress />
-        </Box>
+        <CircularProgress />
       </div>
     );
   }
