@@ -20,7 +20,7 @@ const router = createBrowserRouter([
 
     children: [
       { path: "bookings/:bookingId", element: <BookingDetailsPage /> },
-      // {path:booking},
+
       {
         path: "login",
         element: <Login />,
